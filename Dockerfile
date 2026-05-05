@@ -1,23 +1,35 @@
-# Use official Python runtime as base image
+# Base image
 FROM python:3.11-slim
 
-# Set working directory in container
+# Prevent Python from writing .pyc files & enable logs immediately
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
 WORKDIR /app
 
-# Copy requirements.txt first for better caching
+# Install system dependencies (optional but good practice)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency file first (for caching)
 COPY requirements.txt .
 
-# Install dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app.py .
 
-# Expose port 5000
+# Expose application port
 EXPOSE 5000
 
-# Set environment variables
+# Environment variables (can be overridden at runtime)
 ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+ENV APP_ENV=production
+ENV PORT=5000
 
-# Run the Flask application
+# Run the app
 CMD ["python", "app.py"]
